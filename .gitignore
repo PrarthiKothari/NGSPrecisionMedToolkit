@@ -1,0 +1,4 @@
+applications*
+data*
+__pycache__*
+.env
