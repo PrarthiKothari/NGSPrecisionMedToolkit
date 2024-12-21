@@ -83,6 +83,90 @@ def setup_fastp(app_dir):
         run_command_out(f"chmod a+x {fastp_path}/fastp")
     return fastp_path
 
+def setup_bwa(app_dir):
+    bwa_path = f"{app_dir}/bwa"
+    #os.makedirs(bwa_path, exist_ok=True)
+    try:
+        run_command_out("{app_dir}/bwa", dir=bwa_path)
+    except:
+        run_command_out(f"wget -O {app_dir}/bwa.tar.bz2 https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2/download")
+        run_command_out(f"tar -xjf {app_dir}/bwa.tar.bz2 -C {app_dir}")
+        run_command_out(f"rm -rf {app_dir}/bwa.tar.bz2")
+        run_command_out(f"mv {app_dir}/bwa-0.7.17 {app_dir}/bwa")
+        run_command_out(f"make -C {app_dir}/bwa") 
+    return bwa_path
+
+def setup_docker(app_dir):
+    """Sets up Docker in the specified application directory."""
+    docker_path = f"{app_dir}/docker"
+    os.makedirs(docker_path, exist_ok=True)
+
+    # Try to run a simple Docker command to check if Docker is installed.
+    try:
+        run_command_out("docker -V")
+        print("Docker is already installed.")
+
+    except Exception as e:
+        print("Docker is not installed. Proceeding with installation...")
+
+        # Install prerequisites
+        run_command_out("sudo apt-get update")
+        run_command_out("sudo apt-get install -y ca-certificates curl")
+        run_command_out("sudo install -m 0755 -d /etc/apt/keyrings")
+        
+        # Add Docker's official GPG key
+        run_command_out("sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc")
+        run_command_out("sudo chmod a+r /etc/apt/keyrings/docker.asc")
+
+        # Get architecture
+        arch = subprocess.check_output("dpkg --print-architecture", shell=True).decode().strip()
+
+        # Get Ubuntu codename
+        codename = subprocess.check_output("lsb_release -cs", shell=True).decode().strip()
+
+        # Create Docker source list entry
+        docker_source = f'deb [arch={arch} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {codename} stable'
+        subprocess.run(f'echo "{docker_source}" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null', shell=True, check=True)
+        
+        run_command_out("sudo apt-get update -y")
+
+        # Install Docker
+        run_command_out("sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin")
+
+        # Start and enable Docker service
+        run_command_out("sudo systemctl start docker")
+        run_command_out("sudo systemctl enable docker")
+
+        # Check status of Docker service
+        run_command_out("sudo systemctl status docker")
+
+    return docker_path
+
+# def setup_gatk(app_dir):
+#     gatk_path = f"{app_dir}/gatk"
+#     os.makedirs(gatk_path, exist_ok=True)
+#     try:
+#         run_command_out("gatk --help", dir=gatk_path)
+#     except:
+#         run_command_out(f"wget -O {gatk_path}/gatk.zip")
+
+# def setup_bcftools(app_dir):
+#     bcftools_path = f"{app_dir}/bcftools"
+#     os.makedirs(bcftools_path, exist_ok=True)
+#     try:
+#         run_command_out("bcftools --help", dir=bcftools_path)
+#     except:
+#         run_command_out(f"wget -O {bcftools_path}/bcftools.tar.bz2")
+
+# def setup_samtools(app_dir):
+#     samtools_path = f"{app_dir}/samtools"
+#     os.makedirs(samtools_path, exist_ok=True)
+#     try:
+#         run_command_out("samtools --help", dir=samtools_path)
+#     except:
+#         run_command_out(f"wget -O {samtools_path}/samtools.tar.bz2")
+
+
 def main(sudo_password=None):
     while sudo_password is None:
         try:
@@ -108,6 +192,24 @@ def main(sudo_password=None):
             set_paths("FASTQC_PATH", fastqc_path)
             fastp_path = setup_fastp(app_dir)
             set_paths("FASTP_PATH", fastp_path)
+            bwa_path = setup_bwa(app_dir)
+            set_paths("BWA_PATH", bwa_path)
+            docker_path = setup_docker(app_dir)
+            set_paths("DOCKER_PATH", docker_path)
+            print(f"Docker has been set up at: {docker_path}")
+
+            # GATK
+            #gatk_path = setup_gatk(app_dir)
+            #set_paths("GATK_PATH", gatk_path)
+
+            # BCFTOOLS
+            #bcftools_path = setup_bcftools(app_dir)
+            #set_paths("BCFTOOLS_PATH", bcftools_path)
+
+            # SAMTOOLS
+            #samtools_path = setup_samtools(app_dir)
+            #set_paths("SAMTOOLS_PATH", samtools_path)
+
             print("Setup completed successfully.")
         else:
             setup_deps(sudo=False)
@@ -117,9 +219,27 @@ def main(sudo_password=None):
             set_paths("FASTQC_PATH", fastqc_path)
             fastp_path = setup_fastp(app_dir)
             set_paths("FASTP_PATH", fastp_path)
+            bwa_path = setup_bwa(app_dir)
+            set_paths("BWA_PATH", bwa_path)
+            docker_path = setup_docker(app_dir)
+            set_paths("DOCKER_PATH", docker_path)
+            print(f"Docker has been set up at: {docker_path}")
+
+            # GATK
+            #gatk_path = setup_gatk(app_dir)
+            #set_paths("GATK_PATH", gatk_path)
+
+            # BCFTOOLS
+            #bcftools_path = setup_bcftools(app_dir)
+            #set_paths("BCFTOOLS_PATH", bcftools_path)
+
+            # SAMTOOLS
+            #samtools_path = setup_samtools(app_dir)
+            #set_paths("SAMTOOLS_PATH", samtools_path)
+
             print("Setup completed successfully.")
-    except:
-        print("An error occurred while setting up system.")
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
     system_os = sys.platform

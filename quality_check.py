@@ -36,4 +36,9 @@ def main(working_dir):
     return reports
 
 if __name__ == '__main__':
-    main(working_dir)
+    reports = main(working_dir)
+
+
+    
+    for report in reports:
+        print(report)

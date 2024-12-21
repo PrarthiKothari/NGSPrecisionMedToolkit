@@ -1,2 +1,4 @@
 python-dotenv==1.0.1
 tqdm==4.66.5
+make==0.1.6.post2
+cmake==3.31.2
