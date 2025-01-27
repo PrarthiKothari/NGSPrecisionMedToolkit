@@ -38,6 +38,13 @@ def setup_deps(sudo=True):
             run_command_out("sudo apt-get install -y default-jdk")
             run_command_out("sudo apt-get install -y default-jre")
             run_command_out("sudo apt-get install -y unzip")
+
+            # for bwa
+            run_command_out("sudo apt-get install -y build-essential")
+            run_command_out(f"sudo apt-get install -y bwa")
+            run_command_out("gcc --version")
+            run_command_out("sudo apt-get install -y zlib1g-dev")
+            
             return True
         else:
             run_command_out("apt-get install -y wget")
@@ -45,6 +52,13 @@ def setup_deps(sudo=True):
             run_command_out("apt-get install -y default-jdk")
             run_command_out("apt-get install -y default-jre")
             run_command_out("apt-get install -y unzip")
+
+            # for bwa
+            run_command_out("apt-get install -y build-essential")
+            run_command_out(f"apt-get install -y bwa")
+            run_command_out("gcc --version")
+            run_command_out("apt-get install -y zlib1g-dev")
+            
             return True
     except Exception as e:
         print("An error occurred while setting up dependencies:", str(e))
@@ -84,16 +98,20 @@ def setup_fastp(app_dir):
     return fastp_path
 
 def setup_bwa(app_dir):
-    bwa_path = f"{app_dir}/bwa"
-    #os.makedirs(bwa_path, exist_ok=True)
+    bwa_path = 'bwa'
     try:
-        run_command_out("{app_dir}/bwa", dir=bwa_path)
-    except:
-        run_command_out(f"wget -O {app_dir}/bwa.tar.bz2 https://sourceforge.net/projects/bio-bwa/files/bwa-0.7.17.tar.bz2/download")
-        run_command_out(f"tar -xjf {app_dir}/bwa.tar.bz2 -C {app_dir}")
-        run_command_out(f"rm -rf {app_dir}/bwa.tar.bz2")
-        run_command_out(f"mv {app_dir}/bwa-0.7.17 {app_dir}/bwa")
-        run_command_out(f"make -C {app_dir}/bwa") 
+        run_command_out("bwa")
+    except Exception as e:
+        print("BWA is not installed. Proceeding with installation...")
+
+        try:
+            try:
+                run_command_out(f"sudo apt-get install -y bwa")
+            except:
+                run_command_out(f"apt-get install -y bwa")
+        except:
+            print("Automatic BWA installation failed. Please install BWA manually")
+        
     return bwa_path
 
 def setup_docker(app_dir):
@@ -142,6 +160,38 @@ def setup_docker(app_dir):
 
     return docker_path
 
+def setup_bcftools(app_dir):
+    bcftools_path = "bcftools"
+    try:
+        run_command_out(f"bcftools")
+    except:
+        print("BCFtools is not installed. Proceeding with installation...")
+        try:
+            try:
+                run_command_out(f"sudo apt-get install -y bcftools")
+            except:
+                run_command_out(f"apt-get install -y bcftools")
+        except:
+            print("Automatic BCFtools installation failed. Please install BCFtools manually")
+
+    return bcftools_path
+
+def setup_samtools(app_dir):
+    samtools_path = "samtools"
+    try:
+        run_command_out(f"samtools")
+    except:
+        print("samtools is not installed. Proceeding with installation...")
+        try:
+            try:
+                run_command_out(f"sudo apt-get install -y samtools")
+            except:
+                run_command_out(f"apt-get install -y samtools")
+        except:
+            print("Automatic samtools installation failed. Please install samtools manually")
+
+    return samtools_path
+
 # def setup_gatk(app_dir):
 #     gatk_path = f"{app_dir}/gatk"
 #     os.makedirs(gatk_path, exist_ok=True)
@@ -149,22 +199,6 @@ def setup_docker(app_dir):
 #         run_command_out("gatk --help", dir=gatk_path)
 #     except:
 #         run_command_out(f"wget -O {gatk_path}/gatk.zip")
-
-# def setup_bcftools(app_dir):
-#     bcftools_path = f"{app_dir}/bcftools"
-#     os.makedirs(bcftools_path, exist_ok=True)
-#     try:
-#         run_command_out("bcftools --help", dir=bcftools_path)
-#     except:
-#         run_command_out(f"wget -O {bcftools_path}/bcftools.tar.bz2")
-
-# def setup_samtools(app_dir):
-#     samtools_path = f"{app_dir}/samtools"
-#     os.makedirs(samtools_path, exist_ok=True)
-#     try:
-#         run_command_out("samtools --help", dir=samtools_path)
-#     except:
-#         run_command_out(f"wget -O {samtools_path}/samtools.tar.bz2")
 
 
 def main(sudo_password=None):
@@ -194,21 +228,18 @@ def main(sudo_password=None):
             set_paths("FASTP_PATH", fastp_path)
             bwa_path = setup_bwa(app_dir)
             set_paths("BWA_PATH", bwa_path)
+            bcftools_path = setup_bcftools(app_dir)
+            set_paths("BCFTOOLS_PATH", bcftools_path)
+            samtools_path = setup_samtools(app_dir)
+            set_paths("SAMTOOLS_PATH", samtools_path)
             docker_path = setup_docker(app_dir)
             set_paths("DOCKER_PATH", docker_path)
             print(f"Docker has been set up at: {docker_path}")
+            
 
             # GATK
             #gatk_path = setup_gatk(app_dir)
             #set_paths("GATK_PATH", gatk_path)
-
-            # BCFTOOLS
-            #bcftools_path = setup_bcftools(app_dir)
-            #set_paths("BCFTOOLS_PATH", bcftools_path)
-
-            # SAMTOOLS
-            #samtools_path = setup_samtools(app_dir)
-            #set_paths("SAMTOOLS_PATH", samtools_path)
 
             print("Setup completed successfully.")
         else:
@@ -221,6 +252,10 @@ def main(sudo_password=None):
             set_paths("FASTP_PATH", fastp_path)
             bwa_path = setup_bwa(app_dir)
             set_paths("BWA_PATH", bwa_path)
+            bcftools_path = setup_bcftools(app_dir)
+            set_paths("BCFTOOLS_PATH", bcftools_path)
+            samtools_path = setup_samtools(app_dir)
+            set_paths("SAMTOOLS_PATH", samtools_path)
             docker_path = setup_docker(app_dir)
             set_paths("DOCKER_PATH", docker_path)
             print(f"Docker has been set up at: {docker_path}")
@@ -228,14 +263,6 @@ def main(sudo_password=None):
             # GATK
             #gatk_path = setup_gatk(app_dir)
             #set_paths("GATK_PATH", gatk_path)
-
-            # BCFTOOLS
-            #bcftools_path = setup_bcftools(app_dir)
-            #set_paths("BCFTOOLS_PATH", bcftools_path)
-
-            # SAMTOOLS
-            #samtools_path = setup_samtools(app_dir)
-            #set_paths("SAMTOOLS_PATH", samtools_path)
 
             print("Setup completed successfully.")
     except Exception as e:
