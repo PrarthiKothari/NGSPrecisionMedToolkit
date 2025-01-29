@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
+from setup import setup_sudo
 from tools import run_command_out, set_paths
+import time
 
 load_dotenv()
 data_dir = os.getenv("DATA_DIR")
@@ -9,6 +11,7 @@ docker_path = os.getenv("DOCKER_PATH")
 gatk_path = os.getenv("GATK_PATH")
 bcftools_path = os.getenv("BCFTOOLS_PATH")
 samtools_path = os.getenv("SAMTOOLS_PATH")
+sudo_password = os.getenv("SUDO_PASSWORD")
 
 '''
 TO PERFORM OPERATIONS OF SAMTOOLS, BCFTOOLS, AND GATK IN DOCKER CONTAINER
@@ -120,17 +123,28 @@ def sbgatk_analysis(samfile):
             run_command_out(f"wget https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf.idx -O {dbsnp_vcf_idx}")
         if not os.path.exists(bam_file):
             run_command_out(f"samtools view -bo {bam_file} {samfile}")
+        else:
+            print("VCF, VCF.IDX AND BAM FILES ALREADY PRESENT")
     
     except Exception as e:
         print(f"An error occurred while downloading dbSNP files: {e}")
-
-    # print("Downloading GATK...")
-    # run_command_out("docker pull broadinstitute/gatk")
-    # run_command_out("docker images")
-    # print("Running GATK docker...")
-    #run_command_out(f"docker run -it -v $PWD:/data/ broadinstitute/gatk:latest ")
-
-
+    
+    try:
+        setup_sudo(sudo_password)
+        print("Downloading GATK...")
+        run_command_out("sudo docker pull broadinstitute/gatk")
+        run_command_out("sudo docker images")
+        print("Running GATK docker...")
+        cwd = os.getcwd().lower()
+        run_command_out(f'sudo docker run -it -v \"{cwd}/{data_dir}/\" broadinstitute/gatk:latest')
+        #sudo docker run -it -v "/mnt/c/users/prarthi kothari/onedrive/desktop/ngsprecisionmedtoolkit/data/:/data" broadinstitute/gatk:latest /bin/bash
+        # ls /data
+        # sudo docker logs <container_id>
+        print("Waiting for 20 seconds")
+        time.sleep(20)
+    
+    except Exception as e:
+        print(f"An error occurred while initializing GATK docker: {e}")
     # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk AddOrReplaceReadGroups -I /data/sample1.bam -O /data/sample1_withRG.bam -ID 1 -LB lib1 -PL ILLUMINA -PU unit1 -SM sample1")
     # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk SortSam -I /data/sample1_withRG.bam -O /data/sorted_sample1.bam -SO coordinate")
     # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest samtools flagstat /data/sorted_sample1.bam")

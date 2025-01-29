@@ -41,7 +41,7 @@ def setup_deps(sudo=True):
 
             # for bwa
             run_command_out("sudo apt-get install -y build-essential")
-            run_command_out(f"sudo apt-get install -y bwa")
+            run_command_out("sudo apt-get install -y bwa")
             run_command_out("gcc --version")
             run_command_out("sudo apt-get install -y zlib1g-dev")
             
@@ -55,7 +55,7 @@ def setup_deps(sudo=True):
 
             # for bwa
             run_command_out("apt-get install -y build-essential")
-            run_command_out(f"apt-get install -y bwa")
+            run_command_out("apt-get install -y bwa")
             run_command_out("gcc --version")
             run_command_out("apt-get install -y zlib1g-dev")
             
