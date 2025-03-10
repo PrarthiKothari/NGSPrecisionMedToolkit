@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from setup import setup_sudo
 from tools import run_command_out, set_paths
 import time
+import subprocess
 
 load_dotenv()
 data_dir = os.getenv("DATA_DIR")
@@ -136,28 +137,28 @@ def sbgatk_analysis(samfile):
         run_command_out("sudo docker images")
         print("Running GATK docker...")
         cwd = os.getcwd().lower()
-        run_command_out(f'sudo docker run -it -v \"{cwd}/{data_dir}/\" broadinstitute/gatk:latest')
-        #sudo docker run -it -v "/mnt/c/users/prarthi kothari/onedrive/desktop/ngsprecisionmedtoolkit/data/:/data" broadinstitute/gatk:latest /bin/bash
+
+        docker_command = f'sudo docker run -it -v "{cwd}:/data" broadinstitute/gatk:latest /bin/bash'
+
+        try:
+            # Use subprocess.run to execute the command
+            subprocess.run(docker_command, shell=True)
+            subprocess.run('ls', shell=True, check=True)
+            # subprocess.run([])
+            print("Waiting for 20 seconds")
+            time.sleep(20)
+        
+        except subprocess.CalledProcessError as e:
+            print(f"An error occurred while running the Docker command: {e}")
+        # run_command_out(f'cd /data/')
+        #run_command_out(f"gatk AddOrReplaceReadGroups -I sample1.bam -O sample1_withRG.bam -ID 1 -LB lib1 -PL ILLUMINA -PU unit1 -SM sample1")
+        
         # ls /data
         # sudo docker logs <container_id>
-        print("Waiting for 20 seconds")
-        time.sleep(20)
+        
     
     except Exception as e:
         print(f"An error occurred while initializing GATK docker: {e}")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk AddOrReplaceReadGroups -I /data/sample1.bam -O /data/sample1_withRG.bam -ID 1 -LB lib1 -PL ILLUMINA -PU unit1 -SM sample1")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk SortSam -I /data/sample1_withRG.bam -O /data/sorted_sample1.bam -SO coordinate")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest samtools flagstat /data/sorted_sample1.bam")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk MarkDuplicates -I /data/sorted_sample1.bam -O /data/markedDups.bam -M /data/metrics_duplicates")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk BaseRecalibrator -I /data/markedDups.bam -R /data/chr18.fa --known-sites /data/Homo_sapiens_assembly38.dbsnp138.vcf -O /data/sample1_recal_data.table")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk ApplyBQSR -R /data/chr18.fa -I /data/markedDups.bam --bqsr-recal-file /data/sample1_recal_data.table -O /data/sample1_recal.bam")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest samtools index /data/sample1_recal.bam")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk Mutect2 -I /data/sample1_recal.bam -R /data/chr18.fa -O /data/sample1.vcf.gz")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest gatk FilterMutectCalls -R /data/chr18.fa -V /data/sample1.vcf.gz -O /data/filtered_sample1.vcf.gz")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest bcftools view --types indels /data/sample1.vcf.gz >> /data/sample1_indels.vcf")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest bcftools view --types snps /data/sample1.vcf.gz >> /data/sample1_snps.vcf")
-    # run_command_out(f"docker run -it -v {data_dir}:/data broadinstitute/gatk:latest bcftools filter -i '%QUAL>50' /data/sample1.vcf.gz")
-
 
 def main(working_dir):
     sbgatk_data_dir = os.path.join(working_dir, 'sbgatk_analysis')
