@@ -440,9 +440,9 @@ def get_fastq(accession, alignment_filter_type, alignment_filter, compression,
     return data_info, download_status, file_zip
 
 # ------------------ GRADIO GUI ------------------
-with gr.Blocks(title="NGS Sequence Quality Check") as demo:
-    gr.Markdown("# NGS Sequence Quality Check")
-    gr.Markdown("Streamline NGS workflows for quality checking using the SRA Toolkit, FastQC, and Fastp.")
+with gr.Blocks(title="NGS-Precision Medicine Toolkit") as demo:
+    gr.Markdown("# NGS-Precision Medicine Toolkit")
+    gr.Markdown("Streamlining NGS workflows for Applications of Precision Medicine")
     
     with gr.Tab("Setup Environment"):
         gr.Markdown("## Setup Environment & Install Dependencies")
@@ -510,6 +510,30 @@ with gr.Blocks(title="NGS Sequence Quality Check") as demo:
         fastp_run_button.click(fn=fastp_main,
                                inputs=fastp_files_input,
                                outputs=[fastp_log, fastp_reports])
+    
+    with gr.Tab("Reference Genome"):
+        gr.Markdown("## Reference Genome Selection")
+        ref_genome_file = gr.File(label="Upload Reference Genome (FASTA)")
+        ref_genome_log = gr.Textbox(label="Reference Genome Log", interactive=False)
+        ref_genome_button = gr.Button("Load Reference Genome")
+        #ref_genome_button.click(fn=load_reference_genome, inputs=ref_genome_file, outputs=ref_genome_log)
+    
+    with gr.Tab("BWA Alignment"):
+        gr.Markdown("## BWA Alignment")
+        reads_file = gr.File(label="Upload Reads File (FASTQ)", file_count="multiple")
+        bwa_run_button = gr.Button("Run BWA Alignment")
+        bwa_log = gr.Textbox(label="BWA Log", interactive=False)
+        aligned_output = gr.File(label="Aligned Output (BAM/SAM)")
+        #bwa_run_button.click(fn=run_bwa_alignment, inputs=reads_file, outputs=[bwa_log, aligned_output])
+    
+    with gr.Tab("GATK Analysis"):
+        gr.Markdown("## GATK Variant Calling")
+        bam_file = gr.File(label="Upload Aligned Reads (BAM/SAM)")
+        gatk_run_button = gr.Button("Run GATK Analysis")
+        gatk_log = gr.Textbox(label="GATK Log", interactive=False)
+        vcf_output = gr.File(label="Variant Call File (VCF)")
+        #gatk_run_button.click(fn=run_gatk_analysis, inputs=bam_file, outputs=[gatk_log, vcf_output])
+    
     
     try:
         webui.queue(default_concurrency_limit=25)
